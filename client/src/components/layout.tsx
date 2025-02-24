@@ -1,11 +1,30 @@
 import { Link } from "wouter";
-import { Building2, Home, User } from "lucide-react";
+import { Building2, Home, LogOut, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 type LayoutProps = {
   children: React.ReactNode;
 };
 
 export function Layout({ children }: LayoutProps) {
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/logout");
+      localStorage.removeItem("currentUserId");
+      window.location.href = "/auth";
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -28,6 +47,15 @@ export function Layout({ children }: LayoutProps) {
                 Profile
               </a>
             </Link>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleLogout}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </nav>
         </div>
       </header>
