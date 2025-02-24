@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Layout } from "@/components/layout";
@@ -11,6 +11,14 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
 
+  // Load userId from localStorage on mount
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("currentUserId");
+    if (storedUserId) {
+      setCurrentUserId(parseInt(storedUserId));
+    }
+  }, []);
+
   const { data: posts, isLoading: postsLoading } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
   });
@@ -19,6 +27,11 @@ export default function Home() {
     queryKey: [`/api/users/${currentUserId}`],
     enabled: !!currentUserId,
   });
+
+  const handleProfileSuccess = (userId: number) => {
+    localStorage.setItem("currentUserId", userId.toString());
+    setCurrentUserId(userId);
+  };
 
   if (!currentUser && !currentUserId) {
     return (
@@ -32,7 +45,7 @@ export default function Home() {
               A safe space to share and learn from professional failures
             </p>
           </div>
-          <ProfileForm onSuccess={(userId) => setCurrentUserId(userId)} />
+          <ProfileForm onSuccess={handleProfileSuccess} />
         </div>
       </Layout>
     );

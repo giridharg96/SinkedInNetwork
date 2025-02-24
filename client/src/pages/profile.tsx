@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Layout } from "@/components/layout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,11 +11,21 @@ import type { User, Post } from "@shared/schema";
 import { COVER_PHOTOS } from "@/lib/constants";
 
 export default function Profile() {
-  // In a real app, we'd get this from auth context
-  const currentUserId = 1;
+  const [, setLocation] = useLocation();
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const storedUserId = localStorage.getItem("currentUserId");
+    if (!storedUserId) {
+      setLocation("/");
+      return;
+    }
+    setCurrentUserId(parseInt(storedUserId));
+  }, [setLocation]);
 
   const { data: user } = useQuery<User>({
     queryKey: [`/api/users/${currentUserId}`],
+    enabled: !!currentUserId,
   });
 
   const { data: posts } = useQuery<Post[]>({
@@ -22,10 +34,12 @@ export default function Profile() {
 
   const { data: followers } = useQuery<{ id: number }[]>({
     queryKey: [`/api/users/${currentUserId}/followers`],
+    enabled: !!currentUserId,
   });
 
   const { data: following } = useQuery<{ id: number }[]>({
     queryKey: [`/api/users/${currentUserId}/following`],
+    enabled: !!currentUserId,
   });
 
   const userPosts = posts?.filter((post) => post.userId === currentUserId);
@@ -59,7 +73,9 @@ export default function Profile() {
               <h1 className="text-2xl font-bold">{user.name}</h1>
               <p className="text-muted-foreground">{user.role}</p>
             </div>
-            <Button variant="outline">Edit Profile</Button>
+            <Button variant="outline" onClick={() => setLocation("/")}>
+              Back to Feed
+            </Button>
           </div>
 
           <div className="flex gap-6 justify-center sm:justify-start mt-6">
@@ -87,7 +103,7 @@ export default function Profile() {
                 new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             )
             .map((post) => (
-              <PostCard key={post.id} post={post} currentUserId={currentUserId} />
+              <PostCard key={post.id} post={post} currentUserId={currentUserId || 0} />
             ))
         ) : (
           <div className="text-center py-8 text-muted-foreground">
