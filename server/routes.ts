@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage";
+import { setupAuth } from "./auth";
 import {
   insertUserSchema,
   insertPostSchema,
@@ -11,6 +12,9 @@ import {
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
+
+  // Set up authentication
+  setupAuth(app);
 
   // Users
   app.post("/api/users", async (req, res) => {
@@ -35,9 +39,20 @@ export async function registerRoutes(app: Express) {
     res.json(user);
   });
 
-  // Posts
-  app.post("/api/posts", async (req, res) => {
-    const result = insertPostSchema.safeParse(req.body);
+  // Middleware to check if user is authenticated
+  const isAuthenticated = (req: any, res: any, next: any) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ error: "Not authenticated" });
+  };
+
+  // Protected routes
+  app.post("/api/posts", isAuthenticated, async (req, res) => {
+    const result = insertPostSchema.safeParse({
+      ...req.body,
+      userId: req.user!.id,
+    });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
@@ -50,9 +65,11 @@ export async function registerRoutes(app: Express) {
     res.json(posts);
   });
 
-  // Comments
-  app.post("/api/comments", async (req, res) => {
-    const result = insertCommentSchema.safeParse(req.body);
+  app.post("/api/comments", isAuthenticated, async (req, res) => {
+    const result = insertCommentSchema.safeParse({
+      ...req.body,
+      userId: req.user!.id,
+    });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
@@ -65,9 +82,11 @@ export async function registerRoutes(app: Express) {
     res.json(comments);
   });
 
-  // Likes
-  app.post("/api/likes", async (req, res) => {
-    const result = insertLikeSchema.safeParse(req.body);
+  app.post("/api/likes", isAuthenticated, async (req, res) => {
+    const result = insertLikeSchema.safeParse({
+      ...req.body,
+      userId: req.user!.id,
+    });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
@@ -75,11 +94,8 @@ export async function registerRoutes(app: Express) {
     res.json(like);
   });
 
-  app.delete("/api/posts/:postId/likes/:userId", async (req, res) => {
-    await storage.deleteLike(
-      parseInt(req.params.postId),
-      parseInt(req.params.userId)
-    );
+  app.delete("/api/posts/:postId/likes", isAuthenticated, async (req, res) => {
+    await storage.deleteLike(parseInt(req.params.postId), req.user!.id);
     res.status(204).end();
   });
 
@@ -88,9 +104,11 @@ export async function registerRoutes(app: Express) {
     res.json(likes);
   });
 
-  // Follows
-  app.post("/api/follows", async (req, res) => {
-    const result = insertFollowSchema.safeParse(req.body);
+  app.post("/api/follows", isAuthenticated, async (req, res) => {
+    const result = insertFollowSchema.safeParse({
+      ...req.body,
+      followerId: req.user!.id,
+    });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
@@ -98,11 +116,8 @@ export async function registerRoutes(app: Express) {
     res.json(follow);
   });
 
-  app.delete("/api/follows/:followerId/:followingId", async (req, res) => {
-    await storage.deleteFollow(
-      parseInt(req.params.followerId),
-      parseInt(req.params.followingId)
-    );
+  app.delete("/api/follows/:followingId", isAuthenticated, async (req, res) => {
+    await storage.deleteFollow(req.user!.id, parseInt(req.params.followingId));
     res.status(204).end();
   });
 

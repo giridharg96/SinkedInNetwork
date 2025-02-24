@@ -15,6 +15,7 @@ import { AVATARS } from "@/lib/constants";
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
+  getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   listUsers(): Promise<User[]>;
 
@@ -66,50 +67,16 @@ export class MemStorage implements IStorage {
       like: 1,
       follow: 1,
     };
-
-    // Initialize with sample data
-    this.initializeSampleData();
-  }
-
-  private async initializeSampleData() {
-    // Create sample users
-    const user1 = await this.createUser({
-      name: "John Developer",
-      role: "Software Engineer",
-      avatar: AVATARS[0],
-    });
-
-    const user2 = await this.createUser({
-      name: "Sarah Startup",
-      role: "Entrepreneur",
-      avatar: AVATARS[1],
-    });
-
-    const user3 = await this.createUser({
-      name: "Mike Manager",
-      role: "Product Manager",
-      avatar: AVATARS[2],
-    });
-
-    // Create sample posts
-    await this.createPost({
-      userId: user1.id,
-      content: "Spent 6 months building a startup that got zero users. Learned the hard way about validating ideas before building. Here's to failing fast and learning faster! 🚀💡",
-    });
-
-    await this.createPost({
-      userId: user2.id,
-      content: "Just had my third failed pitch this week. Investors weren't convinced about the market size. Time to pivot or persist? 🤔\n\nKey learnings:\n- Need better market research\n- Improve pitch deck\n- Practice more",
-    });
-
-    await this.createPost({
-      userId: user3.id,
-      content: "Launched a major feature without proper user testing. Result? 50% drop in user engagement. Sometimes the biggest failures teach the best lessons in product management. 📊😅",
-    });
   }
 
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
