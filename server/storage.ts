@@ -10,27 +10,28 @@ import {
   InsertLike,
   InsertFollow,
 } from "@shared/schema";
+import { AVATARS } from "@/lib/constants";
 
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   listUsers(): Promise<User[]>;
-  
+
   // Posts
   createPost(post: InsertPost): Promise<Post>;
   getPost(id: number): Promise<Post | undefined>;
   listPosts(): Promise<Post[]>;
-  
+
   // Comments
   createComment(comment: InsertComment): Promise<Comment>;
   listComments(postId: number): Promise<Comment[]>;
-  
+
   // Likes
   createLike(like: InsertLike): Promise<Like>;
   deleteLike(postId: number, userId: number): Promise<void>;
   listLikes(postId: number): Promise<Like[]>;
-  
+
   // Follows
   createFollow(follow: InsertFollow): Promise<Follow>;
   deleteFollow(followerId: number, followingId: number): Promise<void>;
@@ -65,9 +66,48 @@ export class MemStorage implements IStorage {
       like: 1,
       follow: 1,
     };
+
+    // Initialize with sample data
+    this.initializeSampleData();
   }
 
-  // Users
+  private async initializeSampleData() {
+    // Create sample users
+    const user1 = await this.createUser({
+      name: "John Developer",
+      role: "Software Engineer",
+      avatar: AVATARS[0],
+    });
+
+    const user2 = await this.createUser({
+      name: "Sarah Startup",
+      role: "Entrepreneur",
+      avatar: AVATARS[1],
+    });
+
+    const user3 = await this.createUser({
+      name: "Mike Manager",
+      role: "Product Manager",
+      avatar: AVATARS[2],
+    });
+
+    // Create sample posts
+    await this.createPost({
+      userId: user1.id,
+      content: "Spent 6 months building a startup that got zero users. Learned the hard way about validating ideas before building. Here's to failing fast and learning faster! 🚀💡",
+    });
+
+    await this.createPost({
+      userId: user2.id,
+      content: "Just had my third failed pitch this week. Investors weren't convinced about the market size. Time to pivot or persist? 🤔\n\nKey learnings:\n- Need better market research\n- Improve pitch deck\n- Practice more",
+    });
+
+    await this.createPost({
+      userId: user3.id,
+      content: "Launched a major feature without proper user testing. Result? 50% drop in user engagement. Sometimes the biggest failures teach the best lessons in product management. 📊😅",
+    });
+  }
+
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
@@ -87,7 +127,6 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values());
   }
 
-  // Posts
   async createPost(insertPost: InsertPost): Promise<Post> {
     const id = this.currentIds.post++;
     const post: Post = {
@@ -107,7 +146,6 @@ export class MemStorage implements IStorage {
     return Array.from(this.posts.values());
   }
 
-  // Comments
   async createComment(insertComment: InsertComment): Promise<Comment> {
     const id = this.currentIds.comment++;
     const comment: Comment = {
@@ -125,7 +163,6 @@ export class MemStorage implements IStorage {
     );
   }
 
-  // Likes
   async createLike(insertLike: InsertLike): Promise<Like> {
     const id = this.currentIds.like++;
     const like: Like = {
@@ -152,7 +189,6 @@ export class MemStorage implements IStorage {
     );
   }
 
-  // Follows
   async createFollow(insertFollow: InsertFollow): Promise<Follow> {
     const id = this.currentIds.follow++;
     const follow: Follow = {
