@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Post, User, Comment } from "@shared/schema";
 
@@ -18,7 +19,7 @@ type PostCardProps = {
 export function PostCard({ post, currentUserId }: PostCardProps) {
   const [comment, setComment] = useState("");
 
-  const { data: author } = useQuery<User>({
+  const { data: author, isLoading: authorLoading } = useQuery<User>({
     queryKey: [`/api/users/${post.userId}`],
   });
 
@@ -69,6 +70,23 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
     },
   });
 
+  if (authorLoading) {
+    return (
+      <Card className="mb-4">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-3 mb-4">
+            <Skeleton className="h-10 w-10 rounded-full" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </div>
+          <Skeleton className="h-20 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!author) return null;
 
   return (
@@ -90,7 +108,7 @@ export function PostCard({ post, currentUserId }: PostCardProps) {
           </div>
         </div>
 
-        <p className="text-sm mb-4">{post.content}</p>
+        <p className="text-sm mb-4 whitespace-pre-wrap">{post.content}</p>
 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <span>{likes?.length || 0} likes</span>

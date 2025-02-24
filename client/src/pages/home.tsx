@@ -5,6 +5,7 @@ import { Layout } from "@/components/layout";
 import { ProfileForm } from "@/components/profile-form";
 import { PostForm } from "@/components/post-form";
 import { PostCard } from "@/components/post-card";
+import { Loader2 } from "lucide-react";
 import type { Post, User } from "@shared/schema";
 
 export default function Home() {
@@ -57,8 +58,9 @@ export default function Home() {
         {currentUser && <PostForm userId={currentUser.id} />}
 
         {postsLoading ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Loading posts...
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            <p className="mt-2 text-muted-foreground">Loading posts...</p>
           </div>
         ) : posts && posts.length > 0 ? (
           <div>
