@@ -9,7 +9,9 @@
           "dist/**/*",
           "server/**/*.ts",
           "server/**/*.js",
-          "shared/**/*"
+          "shared/**/*",
+          "server/storage.ts",
+          "server/auth.ts"
         ]
       }
     }
