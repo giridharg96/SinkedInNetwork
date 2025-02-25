@@ -10,11 +10,7 @@ import {
   insertLikeSchema,
   insertFollowSchema,
 } from "@shared/schema";
-
-interface AuthenticatedRequest extends Request {
-  user: User;
-  isAuthenticated(): boolean;
-}
+import type { AuthenticatedRequest } from "@shared/types";
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -47,18 +43,19 @@ export async function registerRoutes(app: Express) {
 
   // Middleware to check if user is authenticated
   const isAuthenticated = (
-    req: AuthenticatedRequest,
+    req: Request,
     res: Response,
     next: NextFunction
-  ) => {
-    if (req.isAuthenticated()) {
+  ): void => {
+    if (req.isAuthenticated && req.isAuthenticated()) {
+      (req as AuthenticatedRequest).isAuthenticated = () => true;
       return next();
     }
     res.status(401).json({ error: "Not authenticated" });
   };
 
   // Protected routes
-  app.post("/api/posts", isAuthenticated, async (req: AuthenticatedRequest, res) => {
+  app.post("/api/posts", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     const result = insertPostSchema.safeParse({
       ...req.body,
       userId: req.user.id,
@@ -75,7 +72,7 @@ export async function registerRoutes(app: Express) {
     res.json(posts);
   });
 
-  app.post("/api/comments", isAuthenticated, async (req, res) => {
+  app.post("/api/comments", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     const result = insertCommentSchema.safeParse({
       ...req.body,
       userId: req.user.id,
@@ -92,7 +89,7 @@ export async function registerRoutes(app: Express) {
     res.json(comments);
   });
 
-  app.post("/api/likes", isAuthenticated, async (req, res) => {
+  app.post("/api/likes", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     const result = insertLikeSchema.safeParse({
       ...req.body,
       userId: req.user.id,
@@ -104,7 +101,7 @@ export async function registerRoutes(app: Express) {
     res.json(like);
   });
 
-  app.delete("/api/posts/:postId/likes", isAuthenticated, async (req, res) => {
+  app.delete("/api/posts/:postId/likes", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     await storage.deleteLike(parseInt(req.params.postId), req.user.id);
     res.status(204).end();
   });
@@ -114,7 +111,7 @@ export async function registerRoutes(app: Express) {
     res.json(likes);
   });
 
-  app.post("/api/follows", isAuthenticated, async (req, res) => {
+  app.post("/api/follows", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     const result = insertFollowSchema.safeParse({
       ...req.body,
       followerId: req.user.id,
@@ -126,7 +123,7 @@ export async function registerRoutes(app: Express) {
     res.json(follow);
   });
 
-  app.delete("/api/follows/:followingId", isAuthenticated, async (req, res) => {
+  app.delete("/api/follows/:followingId", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
     await storage.deleteFollow(req.user.id, parseInt(req.params.followingId));
     res.status(204).end();
   });

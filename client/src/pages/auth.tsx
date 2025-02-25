@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { AVATARS } from "@/lib/constants";
+import { LoginFormData, RegisterFormData } from "@shared/types";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -45,7 +46,7 @@ export default function AuthPage() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (values: typeof loginForm.getValues) => {
+    mutationFn: async (values: LoginFormData) => {
       const res = await apiRequest("POST", "/api/login", values);
       return await res.json();
     },
@@ -67,7 +68,7 @@ export default function AuthPage() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (values: typeof registerForm.getValues) => {
+    mutationFn: async (values: RegisterFormData) => {
       const res = await apiRequest("POST", "/api/register", values);
       return await res.json();
     },
@@ -88,6 +89,16 @@ export default function AuthPage() {
     },
   });
 
+  // Login form
+  const onLoginSubmit: SubmitHandler<LoginFormData> = (data) => {
+    loginMutation.mutate(data);
+  };
+
+  // Register form
+  const onRegisterSubmit: SubmitHandler<RegisterFormData> = (data) => {
+    registerMutation.mutate(data);
+  };
+
   return (
     <div className="min-h-screen bg-background flex">
       <div className="flex-1 flex items-center justify-center p-4">
@@ -102,9 +113,7 @@ export default function AuthPage() {
               <TabsContent value="login">
                 <Form {...loginForm}>
                   <form
-                    onSubmit={loginForm.handleSubmit((values) =>
-                      loginMutation.mutate(values)
-                    )}
+                    onSubmit={loginForm.handleSubmit(onLoginSubmit)}
                     className="space-y-4"
                   >
                     <FormField
@@ -149,9 +158,7 @@ export default function AuthPage() {
               <TabsContent value="register">
                 <Form {...registerForm}>
                   <form
-                    onSubmit={registerForm.handleSubmit((values) =>
-                      registerMutation.mutate(values)
-                    )}
+                    onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
                     className="space-y-4"
                   >
                     <FormField

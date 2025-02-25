@@ -12,7 +12,8 @@ export interface User {
 
 // Request types
 export interface AuthenticatedRequest extends Request {
-  user?: User;
+  user: User;
+  isAuthenticated(): this is AuthenticatedRequest;
 }
 
 // Form data types

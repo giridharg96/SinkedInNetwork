@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { insertPostSchema } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { type PostFormData } from "@shared/types";
 
 type PostFormProps = {
   userId: number;
@@ -38,7 +39,7 @@ export function PostForm({ userId }: PostFormProps) {
   });
 
   const mutation = useMutation({
-    mutationFn: async (values: typeof form.getValues) => {
+    mutationFn: async (values: PostFormData) => {
       await apiRequest("POST", "/api/posts", values);
     },
     onSuccess: () => {
@@ -58,12 +59,16 @@ export function PostForm({ userId }: PostFormProps) {
     },
   });
 
+  const onSubmit: SubmitHandler<PostFormData> = (data) => {
+    mutation.mutate(data);
+  };
+
   return (
     <Card className="mb-6">
       <CardContent className="pt-6">
         <Form {...form}>
           <form
-            onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+            onSubmit={onSubmit}
             className="space-y-4"
           >
             <FormField
