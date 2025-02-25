@@ -5,4 +5,16 @@ export interface User {
   role?: string;
   avatar?: string;
   // add other necessary properties
+}
+
+// Add form types
+export interface PostFormData {
+  userId: number;
+  content: string;
+}
+
+export interface ProfileFormData {
+  name: string;
+  role: string;
+  avatar: string;
 } 

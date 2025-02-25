@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { storage } from "./storage.js";
 import { setupAuth } from "./auth.js";
@@ -11,9 +11,8 @@ import {
   insertFollowSchema,
 } from "@shared/schema";
 
-// Update the type for the authenticated request
-interface AuthenticatedRequest extends Express.Request {
-  user?: User;
+interface AuthenticatedRequest extends Request {
+  user: User;
   isAuthenticated(): boolean;
 }
 
@@ -49,8 +48,8 @@ export async function registerRoutes(app: Express) {
   // Middleware to check if user is authenticated
   const isAuthenticated = (
     req: AuthenticatedRequest,
-    res: Express.Response,
-    next: Express.NextFunction
+    res: Response,
+    next: NextFunction
   ) => {
     if (req.isAuthenticated()) {
       return next();
@@ -62,7 +61,7 @@ export async function registerRoutes(app: Express) {
   app.post("/api/posts", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const result = insertPostSchema.safeParse({
       ...req.body,
-      userId: req.user!.id,
+      userId: req.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -79,7 +78,7 @@ export async function registerRoutes(app: Express) {
   app.post("/api/comments", isAuthenticated, async (req, res) => {
     const result = insertCommentSchema.safeParse({
       ...req.body,
-      userId: req.user!.id,
+      userId: req.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -96,7 +95,7 @@ export async function registerRoutes(app: Express) {
   app.post("/api/likes", isAuthenticated, async (req, res) => {
     const result = insertLikeSchema.safeParse({
       ...req.body,
-      userId: req.user!.id,
+      userId: req.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -106,7 +105,7 @@ export async function registerRoutes(app: Express) {
   });
 
   app.delete("/api/posts/:postId/likes", isAuthenticated, async (req, res) => {
-    await storage.deleteLike(parseInt(req.params.postId), req.user!.id);
+    await storage.deleteLike(parseInt(req.params.postId), req.user.id);
     res.status(204).end();
   });
 
@@ -118,7 +117,7 @@ export async function registerRoutes(app: Express) {
   app.post("/api/follows", isAuthenticated, async (req, res) => {
     const result = insertFollowSchema.safeParse({
       ...req.body,
-      followerId: req.user!.id,
+      followerId: req.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -128,7 +127,7 @@ export async function registerRoutes(app: Express) {
   });
 
   app.delete("/api/follows/:followingId", isAuthenticated, async (req, res) => {
-    await storage.deleteFollow(req.user!.id, parseInt(req.params.followingId));
+    await storage.deleteFollow(req.user.id, parseInt(req.params.followingId));
     res.status(204).end();
   });
 

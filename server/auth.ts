@@ -7,6 +7,7 @@ import { promisify } from "util";
 import { storage } from "./storage";
 import { loginSchema, insertUserSchema, type User } from "@shared/schema";
 import memorystore from "memorystore";
+import type { User as SharedUser } from "@shared/types";
 
 declare global {
   namespace Express {
