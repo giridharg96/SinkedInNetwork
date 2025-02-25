@@ -1,17 +1,21 @@
 import { Request } from 'express';
+import { ParamsDictionary } from 'express-serve-static-core';
+import { ParsedQs } from 'qs';
 
 // Basic user interface
 export interface User {
   id: number;
   name: string;
   email: string;
+  username: string;
   role?: string;
   avatar?: string;
   password?: string;
+  createdAt?: Date;
 }
 
 // Request types
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest extends Request<ParamsDictionary, any, any, ParsedQs> {
   user: User;
   isAuthenticated(): this is AuthenticatedRequest;
 }

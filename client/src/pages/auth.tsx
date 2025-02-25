@@ -19,14 +19,14 @@ import { useToast } from "@/hooks/use-toast";
 import { insertUserSchema, loginSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { AVATARS } from "@/lib/constants";
-import { LoginFormData, RegisterFormData } from "@shared/types";
+import { LoginFormData, RegisterFormData, User } from "@shared/types";
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedAvatar, setSelectedAvatar] = useState(AVATARS[0]);
 
-  const loginForm = useForm({
+  const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       username: "",
@@ -34,7 +34,7 @@ export default function AuthPage() {
     },
   });
 
-  const registerForm = useForm({
+  const registerForm = useForm<RegisterFormData>({
     resolver: zodResolver(insertUserSchema),
     defaultValues: {
       username: "",
@@ -46,9 +46,9 @@ export default function AuthPage() {
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (values: LoginFormData) => {
+    mutationFn: async (values: LoginFormData): Promise<User> => {
       const res = await apiRequest("POST", "/api/login", values);
-      return await res.json();
+      return res.json();
     },
     onSuccess: (user) => {
       localStorage.setItem("currentUserId", user.id.toString());
@@ -68,9 +68,9 @@ export default function AuthPage() {
   });
 
   const registerMutation = useMutation({
-    mutationFn: async (values: RegisterFormData) => {
+    mutationFn: async (values: RegisterFormData): Promise<User> => {
       const res = await apiRequest("POST", "/api/register", values);
-      return await res.json();
+      return res.json();
     },
     onSuccess: (user) => {
       localStorage.setItem("currentUserId", user.id.toString());

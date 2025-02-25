@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { storage } from "./storage.js";
 import { setupAuth } from "./auth.js";
-import type { User } from "@shared/types";
+import type { User, AuthenticatedRequest } from "@shared/types";
 import {
   insertUserSchema,
   insertPostSchema,
@@ -10,7 +10,6 @@ import {
   insertLikeSchema,
   insertFollowSchema,
 } from "@shared/schema";
-import type { AuthenticatedRequest } from "@shared/types";
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -19,7 +18,7 @@ export async function registerRoutes(app: Express) {
   setupAuth(app);
 
   // Users
-  app.post("/api/users", async (req, res) => {
+  app.post("/api/users", async (req: Request, res: Response) => {
     const result = insertUserSchema.safeParse(req.body);
     if (!result.success) {
       return res.status(400).json({ error: result.error });
@@ -28,12 +27,12 @@ export async function registerRoutes(app: Express) {
     res.json(user);
   });
 
-  app.get("/api/users", async (_req, res) => {
+  app.get("/api/users", async (_req: Request, res: Response) => {
     const users = await storage.listUsers();
     res.json(users);
   });
 
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", async (req: Request, res: Response) => {
     const user = await storage.getUser(parseInt(req.params.id));
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -48,7 +47,6 @@ export async function registerRoutes(app: Express) {
     next: NextFunction
   ): void => {
     if (req.isAuthenticated && req.isAuthenticated()) {
-      (req as AuthenticatedRequest).isAuthenticated = () => true;
       return next();
     }
     res.status(401).json({ error: "Not authenticated" });
@@ -67,7 +65,7 @@ export async function registerRoutes(app: Express) {
     res.json(post);
   });
 
-  app.get("/api/posts", async (_req, res) => {
+  app.get("/api/posts", async (_req: Request, res: Response) => {
     const posts = await storage.listPosts();
     res.json(posts);
   });
@@ -84,7 +82,7 @@ export async function registerRoutes(app: Express) {
     res.json(comment);
   });
 
-  app.get("/api/posts/:postId/comments", async (req, res) => {
+  app.get("/api/posts/:postId/comments", async (req: Request, res: Response) => {
     const comments = await storage.listComments(parseInt(req.params.postId));
     res.json(comments);
   });
@@ -106,7 +104,7 @@ export async function registerRoutes(app: Express) {
     res.status(204).end();
   });
 
-  app.get("/api/posts/:postId/likes", async (req, res) => {
+  app.get("/api/posts/:postId/likes", async (req: Request, res: Response) => {
     const likes = await storage.listLikes(parseInt(req.params.postId));
     res.json(likes);
   });
@@ -128,12 +126,12 @@ export async function registerRoutes(app: Express) {
     res.status(204).end();
   });
 
-  app.get("/api/users/:userId/followers", async (req, res) => {
+  app.get("/api/users/:userId/followers", async (req: Request, res: Response) => {
     const followers = await storage.listFollowers(parseInt(req.params.userId));
     res.json(followers);
   });
 
-  app.get("/api/users/:userId/following", async (req, res) => {
+  app.get("/api/users/:userId/following", async (req: Request, res: Response) => {
     const following = await storage.listFollowing(parseInt(req.params.userId));
     res.json(following);
   });

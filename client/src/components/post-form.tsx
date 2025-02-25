@@ -23,7 +23,7 @@ type PostFormProps = {
 export function PostForm({ userId }: PostFormProps) {
   const { toast } = useToast();
 
-  const form = useForm({
+  const form = useForm<PostFormData>({
     resolver: zodResolver(
       insertPostSchema.extend({
         content: insertPostSchema.shape.content.min(
@@ -68,7 +68,7 @@ export function PostForm({ userId }: PostFormProps) {
       <CardContent className="pt-6">
         <Form {...form}>
           <form
-            onSubmit={onSubmit}
+            onSubmit={form.handleSubmit(onSubmit)}
             className="space-y-4"
           >
             <FormField
