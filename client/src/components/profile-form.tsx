@@ -17,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { insertUserSchema } from "@shared/schema";
 import { AVATARS } from "@/lib/constants";
 import { apiRequest } from "@/lib/queryClient";
+import { type ProfileFormData } from "@shared/types";
 
 type ProfileFormProps = {
   onSuccess: (userId: number) => void;
@@ -40,7 +41,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     },
   });
 
-  const onSubmit: SubmitHandler<FormData> = async (values) => {
+  const onSubmit: SubmitHandler<ProfileFormData> = async (values) => {
     try {
       const res = await apiRequest("POST", "/api/users", values);
       const user = await res.json();

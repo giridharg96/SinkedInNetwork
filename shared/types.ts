@@ -1,3 +1,5 @@
+import { Request } from 'express';
+
 // Basic user interface
 export interface User {
   id: number;
@@ -9,22 +11,32 @@ export interface User {
 }
 
 // Request types
-export interface AuthenticatedRequest extends Express.Request {
-  user: User;
-  isAuthenticated(): boolean;
+export interface AuthenticatedRequest extends Request {
+  user?: User;
 }
 
 // Form data types
-export interface PostFormData {
-  userId: number;
-  content: string;
-}
+export type LoginFormData = {
+  username: string;
+  password: string;
+};
 
-export interface ProfileFormData {
+export type RegisterFormData = LoginFormData & {
   name: string;
   role: string;
   avatar: string;
-}
+};
+
+export type PostFormData = {
+  userId: number;
+  content: string;
+};
+
+export type ProfileFormData = {
+  name: string;
+  role: string;
+  avatar: string;
+};
 
 // API response types
 export interface ApiResponse<T> {
