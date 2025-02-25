@@ -11,7 +11,14 @@ import type { User as SharedUser } from "@shared/types";
 
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User {
+      id: number;
+      name: string;
+      email: string;
+      role?: string;
+      avatar?: string;
+      password?: string;
+    }
   }
 }
 

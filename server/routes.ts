@@ -47,22 +47,23 @@ export async function registerRoutes(app: Express) {
     next: NextFunction
   ): void => {
     if (req.isAuthenticated && req.isAuthenticated()) {
-      return next();
+      next();
+    } else {
+      res.status(401).json({ error: "Not authenticated" });
     }
-    res.status(401).json({ error: "Not authenticated" });
   };
 
   // Protected routes
-  app.post("/api/posts", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/posts", isAuthenticated, (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const result = insertPostSchema.safeParse({
-      ...req.body,
-      userId: req.user.id,
+      ...authReq.body,
+      userId: authReq.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
-    const post = await storage.createPost(result.data);
-    res.json(post);
+    storage.createPost(result.data).then(post => res.json(post));
   });
 
   app.get("/api/posts", async (_req: Request, res: Response) => {
@@ -70,16 +71,16 @@ export async function registerRoutes(app: Express) {
     res.json(posts);
   });
 
-  app.post("/api/comments", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/comments", isAuthenticated, (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const result = insertCommentSchema.safeParse({
-      ...req.body,
-      userId: req.user.id,
+      ...authReq.body,
+      userId: authReq.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
-    const comment = await storage.createComment(result.data);
-    res.json(comment);
+    storage.createComment(result.data).then(comment => res.json(comment));
   });
 
   app.get("/api/posts/:postId/comments", async (req: Request, res: Response) => {
@@ -87,21 +88,22 @@ export async function registerRoutes(app: Express) {
     res.json(comments);
   });
 
-  app.post("/api/likes", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/likes", isAuthenticated, (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const result = insertLikeSchema.safeParse({
-      ...req.body,
-      userId: req.user.id,
+      ...authReq.body,
+      userId: authReq.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
-    const like = await storage.createLike(result.data);
-    res.json(like);
+    storage.createLike(result.data).then(like => res.json(like));
   });
 
-  app.delete("/api/posts/:postId/likes", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
-    await storage.deleteLike(parseInt(req.params.postId), req.user.id);
-    res.status(204).end();
+  app.delete("/api/posts/:postId/likes", isAuthenticated, (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
+    storage.deleteLike(parseInt(req.params.postId), authReq.user.id)
+      .then(() => res.status(204).end());
   });
 
   app.get("/api/posts/:postId/likes", async (req: Request, res: Response) => {
@@ -109,21 +111,22 @@ export async function registerRoutes(app: Express) {
     res.json(likes);
   });
 
-  app.post("/api/follows", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
+  app.post("/api/follows", isAuthenticated, (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
     const result = insertFollowSchema.safeParse({
-      ...req.body,
-      followerId: req.user.id,
+      ...authReq.body,
+      followerId: authReq.user.id,
     });
     if (!result.success) {
       return res.status(400).json({ error: result.error });
     }
-    const follow = await storage.createFollow(result.data);
-    res.json(follow);
+    storage.createFollow(result.data).then(follow => res.json(follow));
   });
 
-  app.delete("/api/follows/:followingId", isAuthenticated, async (req: AuthenticatedRequest, res: Response) => {
-    await storage.deleteFollow(req.user.id, parseInt(req.params.followingId));
-    res.status(204).end();
+  app.delete("/api/follows/:followingId", isAuthenticated, (req: Request, res: Response) => {
+    const authReq = req as AuthenticatedRequest;
+    storage.deleteFollow(authReq.user.id, parseInt(req.params.followingId))
+      .then(() => res.status(204).end());
   });
 
   app.get("/api/users/:userId/followers", async (req: Request, res: Response) => {
