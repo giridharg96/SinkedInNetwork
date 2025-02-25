@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
     },
   });
 
-  async function onSubmit(values: typeof form.getValues) {
+  const onSubmit: SubmitHandler<FormData> = async (values) => {
     try {
       const res = await apiRequest("POST", "/api/users", values);
       const user = await res.json();
@@ -56,7 +56,7 @@ export function ProfileForm({ onSuccess }: ProfileFormProps) {
         description: "Failed to create profile. Please try again.",
       });
     }
-  }
+  };
 
   return (
     <Card className="w-full max-w-md mx-auto">

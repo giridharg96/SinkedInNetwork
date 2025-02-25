@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer } from "http";
 import { storage } from "./storage.js";
 import { setupAuth } from "./auth.js";
+import type { User } from "@shared/types";
 import {
   insertUserSchema,
   insertPostSchema,
@@ -9,6 +10,12 @@ import {
   insertLikeSchema,
   insertFollowSchema,
 } from "@shared/schema";
+
+// Update the type for the authenticated request
+interface AuthenticatedRequest extends Express.Request {
+  user?: User;
+  isAuthenticated(): boolean;
+}
 
 export async function registerRoutes(app: Express) {
   const httpServer = createServer(app);
@@ -40,7 +47,11 @@ export async function registerRoutes(app: Express) {
   });
 
   // Middleware to check if user is authenticated
-  const isAuthenticated = (req: any, res: any, next: any) => {
+  const isAuthenticated = (
+    req: AuthenticatedRequest,
+    res: Express.Response,
+    next: Express.NextFunction
+  ) => {
     if (req.isAuthenticated()) {
       return next();
     }
@@ -48,7 +59,7 @@ export async function registerRoutes(app: Express) {
   };
 
   // Protected routes
-  app.post("/api/posts", isAuthenticated, async (req, res) => {
+  app.post("/api/posts", isAuthenticated, async (req: AuthenticatedRequest, res) => {
     const result = insertPostSchema.safeParse({
       ...req.body,
       userId: req.user!.id,
